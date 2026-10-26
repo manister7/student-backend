@@ -1,8 +1,9 @@
 import os
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 import mysql.connector
 app = FastAPI()
+router = APIRouter(prefix="/api")
 class Student(BaseModel):
  name: str
  course: str
@@ -14,12 +15,12 @@ def get_connection():
  database=os.getenv("DB_NAME")
  )
 
-@app.get("/health")
+@router.get("/health")
 def health():
  return {
  "status": "UP"
  }
-@app.get("/students")
+@router.get("/students")
 def get_students():
  conn = get_connection()
  cursor = conn.cursor(dictionary=True)
@@ -30,7 +31,7 @@ def get_students():
  conn.close()
  return result
 
-@app.get("/students/{student_id}")
+@router.get("/students/{student_id}")
 def get_student(student_id: int):
  conn = get_connection()
  cursor = conn.cursor(dictionary=True)
@@ -42,7 +43,7 @@ def get_student(student_id: int):
  conn.close()
  return result
 
-@app.post("/students")
+@router.post("/students")
 def create_student(student: Student):
  conn = get_connection()
  cursor = conn.cursor()
@@ -61,3 +62,5 @@ def create_student(student: Student):
  return {
  "message": "Student Created"
  }
+
+app.include_router(router)
